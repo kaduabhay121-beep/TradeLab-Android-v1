@@ -1,0 +1,22 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.tradelab.mobile'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.tradelab.mobile'
+        minSdk 23
+        targetSdk 36
+        versionCode 1
+        versionName '1.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+        }
+        debug { minifyEnabled false }
+    }
+}

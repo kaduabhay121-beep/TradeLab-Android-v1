@@ -1,0 +1,10 @@
+TradeLab Android v1 - GitHub upload structure
+
+Upload the CONTENTS of this folder while preserving folders.
+Do not flatten .github/workflows or app/src/main.
+
+Required paths:
+OK   .github/workflows/build-apk.yml
+OK   app/build.gradle
+OK   settings.gradle
+OK   build.gradle
