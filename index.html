@@ -155,30 +155,310 @@ canvas { width: 100% !important; height: 100% !important; display: block; }
 
   .replay-log-btn{width:100%;margin-top:7px}.replay-log-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:99999;display:none;padding:0}.replay-log-overlay.open{display:flex}.replay-log-window{width:100%;height:100%;background:#080b10;color:#e5e7eb;display:flex;flex-direction:column;overflow:hidden}.replay-log-head{flex:0 0 auto;padding:12px;border-bottom:1px solid #1a2230;background:#0d1117;display:flex;align-items:center;justify-content:space-between;gap:8px}.replay-log-title{font-size:12px;font-weight:900;letter-spacing:.6px}.replay-log-sub{font-size:8px;color:#64748b;margin-top:3px}.replay-log-close{border:1px solid #273142;background:#111722;color:#e5e7eb;border-radius:7px;padding:7px 10px;font-weight:900}.replay-log-summary{flex:0 0 auto;padding:8px 10px;border-bottom:1px solid #141b26;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.replay-log-body{flex:1;overflow:auto;padding:8px 10px}.replay-log-table{width:100%;border-collapse:collapse;font-size:9px;min-width:700px}.replay-log-table th,.replay-log-table td{padding:7px 5px;border-bottom:1px solid #17202d;text-align:right;white-space:nowrap}.replay-log-table th:first-child,.replay-log-table td:first-child,.replay-log-table td:nth-child(3){text-align:left}.replay-log-empty{padding:25px;text-align:center;color:#64748b;font-size:10px}.replay-log-note{padding:8px 10px;border-top:1px solid #141b26;color:#64748b;font-size:8px}
 
-  /* Mobile WebView hardening: never allow the app shell to render underneath system bars. */
-  html, body { width:100%; max-width:100%; min-width:0; }
-  body { width:100%; max-width:100%; overflow:hidden; padding:0; }
-  #mainAppContainer { width:100%; max-width:100%; min-width:0; height:100dvh; min-height:0; overflow:hidden; }
-  .tv-header-top { min-width:0; }
-  .tv-header-top > div:first-child { min-width:0; flex:1 1 auto; overflow-x:auto; overflow-y:hidden; }
-  #tabsContainer { min-width:max-content; flex:0 0 auto; }
-  #headerBal { flex:0 0 auto; width:76px; max-width:76px; min-width:0; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .tv-sub-toolbar { min-width:0; flex:0 0 32px; }
-  .chart-viewport { min-width:0; min-height:0; }
-  .tv-bottom-bar { min-width:0; }
-  .bottom-nav { width:100%; max-width:100%; min-width:0; flex:0 0 auto; height:58px; min-height:58px; padding-bottom:8px; }
-  .nav-btn { min-width:0; overflow:hidden; }
-  @media (max-width:430px) {
-    .tv-header-top { height:46px; min-height:46px; padding:5px 6px; gap:4px; }
-    .tab-capsule, .btn-new-tab { font-size:9px; padding:4px 6px; }
-    #headerBal { width:68px; max-width:68px; font-size:9px !important; }
-    .tv-sub-toolbar { gap:5px; padding-left:6px; padding-right:6px; }
-    .onchart-order-widget { left:5px; top:5px; max-width:calc(100vw - 10px); }
-    .instant-trade-box { max-width:calc(100vw - 14px); }
-    .bottom-nav { height:60px; min-height:60px; padding-bottom:10px; }
-    .nav-btn { height:50px; font-size:8px; }
-    .nav-btn svg { width:15px; height:15px; }
+/* =========================================================
+   TRADELAB MOBILE PHONE LAYOUT
+   ========================================================= */
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overscroll-behavior: none;
+}
+
+#mainAppContainer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------- TOP HEADER ---------- */
+
+.tv-header-top {
+  width: 100%;
+  min-width: 0;
+  flex: 0 0 46px;
+  height: 46px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 5px 6px;
+  gap: 5px;
+}
+
+.tv-header-top > div:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.tv-header-top > div:first-child::-webkit-scrollbar {
+  display: none;
+}
+
+#tabsContainer {
+  display: flex;
+  width: max-content;
+  min-width: max-content;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.tab-capsule,
+.btn-new-tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 10px;
+  padding: 5px 7px;
+}
+
+#headerBal {
+  flex: 0 0 66px;
+  width: 66px;
+  max-width: 66px;
+  min-width: 66px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  font-size: 9px !important;
+}
+
+/* ---------- INDICATOR TOOLBAR ---------- */
+
+.tv-sub-toolbar {
+  width: 100%;
+  min-width: 0;
+  flex: 0 0 34px;
+  height: 34px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  padding: 0 7px;
+  gap: 7px;
+}
+
+.tv-sub-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- CHART ---------- */
+
+#tab-chart.active {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chart-viewport {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+#chartCanvas,
+canvas {
+  max-width: 100%;
+}
+
+/* ---------- ORDER WIDGET ---------- */
+
+.onchart-order-widget {
+  left: 6px;
+  right: 6px;
+  max-width: calc(100% - 12px);
+  overflow: visible;
+}
+
+.instant-trade-box {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+/* ---------- LOWER INFORMATION BAR ---------- */
+
+.tv-bottom-bar {
+  width: 100%;
+  min-width: 0;
+  flex: 0 0 32px;
+  height: 32px;
+  overflow: hidden;
+}
+
+/* ---------- BOTTOM NAVIGATION ---------- */
+
+.bottom-nav {
+  position: relative;
+  z-index: 100;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  flex: 0 0 auto;
+
+  height: 64px;
+  min-height: 64px;
+
+  padding:
+    2px
+    0
+    calc(2px + env(safe-area-inset-bottom));
+
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  overflow: hidden;
+}
+
+.nav-btn {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  max-width: none;
+
+  height: 52px;
+  min-height: 52px;
+
+  padding: 3px 0;
+
+  overflow: hidden;
+  white-space: nowrap;
+
+  font-size: 8px;
+}
+
+.nav-btn svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+/* ---------- PHONE WIDTHS ---------- */
+
+@media (max-width: 430px) {
+
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
   }
+
+  .tv-header-top {
+    flex-basis: 46px;
+    height: 46px;
+  }
+
+  .tv-sub-toolbar {
+    flex-basis: 34px;
+    height: 34px;
+  }
+
+  .tv-bottom-bar {
+    flex-basis: 32px;
+    height: 32px;
+  }
+
+  .bottom-nav {
+    height: 66px;
+    min-height: 66px;
+    padding-bottom: calc(4px + env(safe-area-inset-bottom));
+  }
+
+  .nav-btn {
+    height: 52px;
+    min-height: 52px;
+    font-size: 7px;
+  }
+
+  .nav-btn svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  #headerBal {
+    flex-basis: 62px;
+    width: 62px;
+    max-width: 62px;
+    min-width: 62px;
+  }
+}
+
+/* ---------- VERY SMALL PHONES ---------- */
+
+@media (max-width: 360px) {
+
+  .tab-capsule,
+  .btn-new-tab {
+    font-size: 9px;
+    padding: 4px 6px;
+  }
+
+  .bottom-nav {
+    height: 68px;
+    min-height: 68px;
+  }
+
+  .nav-btn {
+    font-size: 6.5px;
+  }
+
+  .nav-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* ---------- PREVENT HORIZONTAL PAGE OVERFLOW ---------- */
+
+body > * {
+  max-width: 100%;
+}
+
+img,
+svg,
+canvas,
+input,
+select,
+button {
+  max-width: 100%;
+}
+
+button,
+select,
+input {
+  box-sizing: border-box;
+}
+  
 </style>
 </head>
 <body>
