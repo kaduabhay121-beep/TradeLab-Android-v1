@@ -36,12 +36,11 @@ public class MainActivity extends Activity {
 
         Window window = getWindow();
 
-        // Keep content inside the Android system-bar safe area.
+        // Do NOT draw TradeLab behind Android system bars.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(true);
         }
 
-        // Dark Android system bars.
         window.setStatusBarColor(Color.rgb(5, 7, 10));
         window.setNavigationBarColor(Color.rgb(5, 7, 10));
 
@@ -52,7 +51,6 @@ public class MainActivity extends Activity {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowInsetsController controller = window.getInsetsController();
-
             if (controller != null) {
                 controller.setSystemBarsAppearance(
                         0,
@@ -62,12 +60,17 @@ public class MainActivity extends Activity {
             }
         }
 
-        // Root container.
+        // Force the normal (non edge-to-edge) system UI mode.
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+
+        // Root is the only container. We explicitly pad it for Android's
+        // status/navigation bars, so the WebView never occupies those areas.
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(Color.rgb(5, 7, 10));
+        root.setFitsSystemWindows(false);
 
-        // WebView.
         webView = new WebView(this);
+        webView.setBackgroundColor(Color.rgb(5, 7, 10));
 
         FrameLayout.LayoutParams webParams =
                 new FrameLayout.LayoutParams(
@@ -78,42 +81,38 @@ public class MainActivity extends Activity {
         root.addView(webView, webParams);
         setContentView(root);
 
-        /*
-         * Explicitly move the WebView below the status bar
-         * and above the navigation/gesture bar.
-         */
-        root.setOnApplyWindowInsetsListener((view, insets) -> {
+        View.OnApplyWindowInsetsListener insetListener = (view, insets) -> {
 
             int topInset = 0;
             int bottomInset = 0;
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-
                 android.graphics.Insets bars =
-                        insets.getInsets(
-                                WindowInsets.Type.systemBars()
-                        );
+                        insets.getInsets(WindowInsets.Type.systemBars());
 
                 topInset = bars.top;
                 bottomInset = bars.bottom;
-
             } else {
-
                 topInset = insets.getSystemWindowInsetTop();
                 bottomInset = insets.getSystemWindowInsetBottom();
             }
 
-            FrameLayout.LayoutParams params =
-                    (FrameLayout.LayoutParams) webView.getLayoutParams();
-
-            params.leftMargin = 0;
-            params.rightMargin = 0;
-            params.topMargin = topInset;
-            params.bottomMargin = bottomInset;
-
-            webView.setLayoutParams(params);
+            // The WebView fills the root, while the root padding reserves
+            // the real Android system-bar areas.
+            root.setPadding(0, topInset, 0, bottomInset);
 
             return insets;
+        };
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            root.setOnApplyWindowInsetsListener(insetListener);
+        }
+
+        // Request the first inset dispatch after the view is attached.
+        root.post(() -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                root.requestApplyInsets();
+            }
         });
 
         WebSettings s = webView.getSettings();
