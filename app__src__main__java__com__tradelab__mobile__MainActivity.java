@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -18,6 +19,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
@@ -33,22 +35,24 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         Window window = getWindow();
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-    window.setDecorFitsSystemWindows(true);
+
+        // Keep content inside the Android system-bar safe area.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(true);
         }
 
-        // Keep the app OUT of Android's system navigation/status areas.
+        // Dark Android system bars.
         window.setStatusBarColor(Color.rgb(5, 7, 10));
         window.setNavigationBarColor(Color.rgb(5, 7, 10));
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.setNavigationBarContrastEnforced(false);
             window.setStatusBarContrastEnforced(false);
         }
 
-        // Explicitly disable edge-to-edge drawing.
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowInsetsController controller = window.getInsetsController();
+
             if (controller != null) {
                 controller.setSystemBarsAppearance(
                         0,
@@ -58,12 +62,59 @@ public class MainActivity extends Activity {
             }
         }
 
+        // Root container.
+        FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(Color.rgb(5, 7, 10));
+
+        // WebView.
         webView = new WebView(this);
 
-        // WebView fills ONLY the safe application area.
-        webView.setFitsSystemWindows(true);
+        FrameLayout.LayoutParams webParams =
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                );
 
-        setContentView(webView);
+        root.addView(webView, webParams);
+        setContentView(root);
+
+        /*
+         * Explicitly move the WebView below the status bar
+         * and above the navigation/gesture bar.
+         */
+        root.setOnApplyWindowInsetsListener((view, insets) -> {
+
+            int topInset = 0;
+            int bottomInset = 0;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+                android.graphics.Insets bars =
+                        insets.getInsets(
+                                WindowInsets.Type.systemBars()
+                        );
+
+                topInset = bars.top;
+                bottomInset = bars.bottom;
+
+            } else {
+
+                topInset = insets.getSystemWindowInsetTop();
+                bottomInset = insets.getSystemWindowInsetBottom();
+            }
+
+            FrameLayout.LayoutParams params =
+                    (FrameLayout.LayoutParams) webView.getLayoutParams();
+
+            params.leftMargin = 0;
+            params.rightMargin = 0;
+            params.topMargin = topInset;
+            params.bottomMargin = bottomInset;
+
+            webView.setLayoutParams(params);
+
+            return insets;
+        });
 
         WebSettings s = webView.getSettings();
 
@@ -79,11 +130,12 @@ public class MainActivity extends Activity {
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
         s.setUserAgentString(
-                s.getUserAgentString() + " TradeLabAndroid/1.1"
+                s.getUserAgentString() + " TradeLabAndroid/1.2"
         );
 
         CookieManager.getInstance().setAcceptCookie(true);
-        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
+        CookieManager.getInstance()
+                .setAcceptThirdPartyCookies(webView, true);
 
         webView.setBackgroundColor(Color.rgb(5, 7, 10));
 
@@ -94,18 +146,21 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(
                     WebView view,
-                    WebResourceRequest request
-            ) {
+                    WebResourceRequest request) {
+
                 Uri u = request.getUrl();
                 String scheme = u.getScheme();
 
                 if (scheme != null &&
-                        (scheme.equals("http") || scheme.equals("https"))) {
+                        (scheme.equals("http")
+                                || scheme.equals("https"))) {
                     return false;
                 }
 
                 try {
-                    startActivity(new Intent(Intent.ACTION_VIEW, u));
+                    startActivity(
+                            new Intent(Intent.ACTION_VIEW, u)
+                    );
                 } catch (ActivityNotFoundException ignored) {
                 }
 
@@ -115,21 +170,26 @@ public class MainActivity extends Activity {
 
         webView.setDownloadListener(
                 new DownloadListener() {
+
                     @Override
                     public void onDownloadStart(
                             String url,
                             String userAgent,
                             String contentDisposition,
                             String mimetype,
-                            long contentLength
-                    ) {
+                            long contentLength) {
+
                         try {
+
                             Intent i = new Intent(
                                     Intent.ACTION_VIEW,
                                     Uri.parse(url)
                             );
+
                             startActivity(i);
+
                         } catch (Exception e) {
+
                             Toast.makeText(
                                     MainActivity.this,
                                     "Download link opened in browser",
@@ -154,6 +214,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
+
         if (webView != null) {
             webView.onPause();
         }
@@ -163,6 +224,7 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
+
         if (webView != null && webView.canGoBack()) {
             webView.goBack();
         } else {
@@ -172,6 +234,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+
         if (webView != null) {
             webView.loadUrl("about:blank");
             webView.stopLoading();
