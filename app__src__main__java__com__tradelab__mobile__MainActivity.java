@@ -33,6 +33,9 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         Window window = getWindow();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+    window.setDecorFitsSystemWindows(true);
+        }
 
         // Keep the app OUT of Android's system navigation/status areas.
         window.setStatusBarColor(Color.rgb(5, 7, 10));
