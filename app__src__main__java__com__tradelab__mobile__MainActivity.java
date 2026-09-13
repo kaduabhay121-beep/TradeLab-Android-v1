@@ -8,6 +8,9 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.WebChromeClient;
@@ -18,84 +21,161 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
-    private static final String APP_URL = "https://trading-simulator-t736.onrender.com/?hl=en-IN";
+
+    private static final String APP_URL =
+            "https://trading-simulator-t736.onrender.com/?hl=en-IN";
+
     private WebView webView;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(Color.rgb(5,7,10));
-        getWindow().setNavigationBarColor(Color.rgb(5,7,10));
+
+        Window window = getWindow();
+
+        // Keep the app OUT of Android's system navigation/status areas.
+        window.setStatusBarColor(Color.rgb(5, 7, 10));
+        window.setNavigationBarColor(Color.rgb(5, 7, 10));
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            window.setNavigationBarContrastEnforced(false);
+            window.setStatusBarContrastEnforced(false);
+        }
+
+        // Explicitly disable edge-to-edge drawing.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsAppearance(
+                        0,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                                | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                );
+            }
+        }
 
         webView = new WebView(this);
+
+        // WebView fills ONLY the safe application area.
+        webView.setFitsSystemWindows(true);
+
         setContentView(webView);
 
         WebSettings s = webView.getSettings();
+
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setDatabaseEnabled(true);
+
         s.setSupportZoom(false);
         s.setBuiltInZoomControls(false);
         s.setDisplayZoomControls(false);
+
         s.setLoadsImagesAutomatically(true);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        s.setUserAgentString(s.getUserAgentString() + " TradeLabAndroid/1.0");
+
+        s.setUserAgentString(
+                s.getUserAgentString() + " TradeLabAndroid/1.1"
+        );
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
 
-        webView.setBackgroundColor(Color.rgb(5,7,10));
+        webView.setBackgroundColor(Color.rgb(5, 7, 10));
+
         webView.setWebChromeClient(new WebChromeClient());
+
         webView.setWebViewClient(new WebViewClient() {
-            @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+
+            @Override
+            public boolean shouldOverrideUrlLoading(
+                    WebView view,
+                    WebResourceRequest request
+            ) {
                 Uri u = request.getUrl();
                 String scheme = u.getScheme();
-                if (scheme != null && (scheme.equals("http") || scheme.equals("https"))) {
+
+                if (scheme != null &&
+                        (scheme.equals("http") || scheme.equals("https"))) {
                     return false;
                 }
-                try { startActivity(new Intent(Intent.ACTION_VIEW, u)); }
-                catch (ActivityNotFoundException ignored) {}
+
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, u));
+                } catch (ActivityNotFoundException ignored) {
+                }
+
                 return true;
             }
         });
 
-        webView.setDownloadListener(new DownloadListener() {
-            @Override public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-                try {
-                    Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    startActivity(i);
-                } catch (Exception e) {
-                    Toast.makeText(MainActivity.this, "Download link opened in browser", Toast.LENGTH_SHORT).show();
+        webView.setDownloadListener(
+                new DownloadListener() {
+                    @Override
+                    public void onDownloadStart(
+                            String url,
+                            String userAgent,
+                            String contentDisposition,
+                            String mimetype,
+                            long contentLength
+                    ) {
+                        try {
+                            Intent i = new Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse(url)
+                            );
+                            startActivity(i);
+                        } catch (Exception e) {
+                            Toast.makeText(
+                                    MainActivity.this,
+                                    "Download link opened in browser",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
                 }
-            }
-        });
+        );
 
         webView.loadUrl(APP_URL);
     }
 
-    @Override protected void onResume() {
+    @Override
+    protected void onResume() {
         super.onResume();
-        if (webView != null) webView.onResume();
+
+        if (webView != null) {
+            webView.onResume();
+        }
     }
 
-    @Override protected void onPause() {
-        if (webView != null) webView.onPause();
+    @Override
+    protected void onPause() {
+        if (webView != null) {
+            webView.onPause();
+        }
+
         super.onPause();
     }
 
-    @Override public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) webView.goBack();
-        else super.onBackPressed();
+    @Override
+    public void onBackPressed() {
+        if (webView != null && webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            super.onBackPressed();
+        }
     }
 
-    @Override protected void onDestroy() {
+    @Override
+    protected void onDestroy() {
         if (webView != null) {
             webView.loadUrl("about:blank");
             webView.stopLoading();
             webView.destroy();
             webView = null;
         }
+
         super.onDestroy();
     }
 }
